@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kazu/constants/app_colors.dart';
+import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/components/pet_card.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,6 +13,23 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final String userName = "Dharaka";
   final String notificationCount = "4";
+  int _selectedIndex = 0;
+
+  void _onTabTapped(int index) {
+    if (index == _selectedIndex) return;
+
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // if (index == 1 ) {
+    //   // Navigate to profile page
+    //  Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (_) => const ProfilePage()),
+    //   );
+    // }
+  }
 
   // Example pets array
   final List<Map<String, dynamic>> pets = [
@@ -246,6 +264,14 @@ class _HomePageState extends State<HomePage> {
                   .toList(),
             ),
           ],
+        ),
+      ),
+      // Footer bar ----
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(bottom: 15),
+        child: AppFooter(
+          currentIndex: _selectedIndex,
+          onTabTapped: _onTabTapped,
         ),
       ),
     );
