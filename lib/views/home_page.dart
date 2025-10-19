@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kazu/constants/app_colors.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/components/pet_card.dart';
+import 'package:kazu/views/pet_register.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -222,7 +223,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PetRegister()),
+                    );
+                  },
                   child: Container(
                     width: 40,
                     height: 40,

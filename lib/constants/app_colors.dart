@@ -24,4 +24,10 @@ class AppColors {
 
   // Borders & dividers
   static const Color divider = Color(0xFFE2E8F0);      // Light Gray
+
+  // Btn Bacground
+  static const Color btnBack = Color.fromARGB(255, 2, 1, 23);       // 
+  static const Color btnTextPrimary = Color.fromARGB(255, 255, 255, 255);       // 
+  static const Color btnTextSecondary = Color(0x00adb5bd);     // 
+
 }
