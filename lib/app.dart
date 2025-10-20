@@ -16,12 +16,9 @@ class _MainAppState extends State<MainApp> {
       debugShowCheckedModeBanner: false,
       title: 'Main App',
       theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme,
-        ),
+        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
       ),
       home: const HomePage(),
-      
     );
   }
 }

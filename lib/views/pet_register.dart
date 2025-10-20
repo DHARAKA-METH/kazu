@@ -20,6 +20,7 @@ class _PetRegisterState extends State<PetRegister> {
 
   String _gender = 'Male';
   LatLng? _safeZoneLocation;
+  double? _safeZoneRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -118,27 +119,24 @@ class _PetRegisterState extends State<PetRegister> {
                     style: const TextStyle(fontSize: 16),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SafeZoneSelector(),
+                          builder: (_) => const SafeZoneSelector(),
                         ),
                       );
-                    },
-                    // onPressed: () async {
-                    //   final result = await Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //         builder: (_) => const SafeZoneSelector()),
-                    //   );
 
-                    //   if (result != null) {
-                    //     setState(() {
-                    //       _safeZoneLocation = result['location'];
-                    //     });
-                    //   }
-                    // },
+                      if (result != null) {
+                        setState(() {
+                          _safeZoneLocation = LatLng(
+                            result['latitude'],
+                            result['longitude'],
+                          );
+                          _safeZoneRadius = result['radius'];
+                        });
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.btnBack,
                       padding: const EdgeInsets.symmetric(
@@ -186,7 +184,7 @@ class _PetRegisterState extends State<PetRegister> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Pet Registered: ${_petNameController.text} ($_gender), Safe Zone set',
+                            'Pet Registered: ${_petNameController.text} ($_gender), Safe Zone set :${_safeZoneLocation} with ${_safeZoneRadius} Raduis',
                           ),
                         ),
                       );

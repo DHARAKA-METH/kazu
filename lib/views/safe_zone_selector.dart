@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:kazu/constants/app_colors.dart';
 
 class SafeZoneSelector extends StatefulWidget {
   const SafeZoneSelector({super.key});
@@ -85,7 +86,12 @@ class _SafeZoneSelectorState extends State<SafeZoneSelector> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Safe Zone')),
+      appBar: AppBar(
+        title: const Text(
+          'Select Safe Zone',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+      ),
       body: _safeZoneCenter == null
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -128,6 +134,9 @@ class _SafeZoneSelectorState extends State<SafeZoneSelector> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.btnBack,
+                          ),
                           onPressed: () {
                             if (_safeZoneCenter != null) {
                               Navigator.pop(context, {
@@ -137,7 +146,10 @@ class _SafeZoneSelectorState extends State<SafeZoneSelector> {
                               });
                             }
                           },
-                          child: const Text('Save Safe Zone'),
+                          child: const Text(
+                            'Save Safe Zone',
+                            style: TextStyle(color: AppColors.btnTextPrimary),
+                          ),
                         ),
                       ),
                     ],
