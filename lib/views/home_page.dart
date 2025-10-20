@@ -17,12 +17,19 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   void _onTabTapped(int index) {
-    if (index == _selectedIndex) return;
+    if (index == _selectedIndex) ;
 
     setState(() {
       _selectedIndex = index;
     });
 
+    if (index != 0) {
+      // Navigate to profile page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    }
     // if (index == 1 ) {
     //   // Navigate to profile page
     //  Navigator.pushReplacement(
@@ -36,16 +43,19 @@ class _HomePageState extends State<HomePage> {
   final List<Map<String, dynamic>> pets = [
     {
       'name': 'Puppy',
+      'deviceId': 'id001',
       'image': 'assets/images/avators.png',
       'isInsideSafeZone': true,
     },
     {
       'name': 'Kitty',
+      'deviceId': 'id002',
       'image': 'assets/images/avators.png',
       'isInsideSafeZone': false,
     },
     {
       'name': 'Buddy',
+      'deviceId': 'id003',
       'image': 'assets/images/avators.png',
       'isInsideSafeZone': true,
     },
@@ -263,6 +273,7 @@ class _HomePageState extends State<HomePage> {
                   .map(
                     (pet) => PetCard(
                       name: pet['name'],
+                      deviceId: pet['deviceId'],
                       isInsideSafeZone: pet['isInsideSafeZone'],
                       // imagePath: pet['image'],
                     ),

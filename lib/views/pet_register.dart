@@ -184,7 +184,7 @@ class _PetRegisterState extends State<PetRegister> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Pet Registered: ${_petNameController.text} ($_gender), Safe Zone set :${_safeZoneLocation} with ${_safeZoneRadius} Raduis',
+                            'Pet Registered: ${_petNameController.text} ($_gender), Safe Zone set :$_safeZoneLocation with $_safeZoneRadius Raduis',
                           ),
                         ),
                       );
