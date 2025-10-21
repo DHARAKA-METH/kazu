@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   void _onTabTapped(int index) {
-    if (index == _selectedIndex) ;
+    if (index == _selectedIndex) {}
 
     setState(() {
       _selectedIndex = index;

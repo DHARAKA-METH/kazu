@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kazu/constants/app_colors.dart';
 
 class AppFooter extends StatelessWidget {
   final int currentIndex;
@@ -17,14 +16,6 @@ class AppFooter extends StatelessWidget {
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, -2),
-          ),
-        ],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Row(
@@ -47,6 +38,22 @@ class AppFooter extends StatelessWidget {
             ),
           ),
 
+          // Stat Icon
+          GestureDetector(
+            onTap: () => onTabTapped(2),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  currentIndex == 2
+                      ? 'assets/images/statistics-active.png'
+                      : 'assets/images/statistics-inactive.png',
+                  width: 22,
+                  height: 22,
+                ),
+              ],
+            ),
+          ),
           // Profile Icon
           GestureDetector(
             onTap: () => onTabTapped(1),

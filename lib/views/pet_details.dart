@@ -26,28 +26,60 @@ class _PetDetailsState extends State<PetDetails> {
   int _selectedIndex = 2;
   String age = '06';
   GoogleMapController? _mapController;
+  bool isPetInSafeZone = false;
+  bool isDeviceConnected = true;
+  String _batteryLife = '64%';
+  double _distanceFromSafeZone = 10.0;
+
+  // Pet location
   final LatLng _petCurrentLocation = const LatLng(6.8440, 80.0029);
-  late Marker _petMarker;
+  Marker? _petMarker;
+
+  // Safe zone
   LatLng? _safeZoneLocation;
   double? _safeZoneRadius;
+  Circle? _safeZoneCircle;
 
-  // Footer navigation bar
+  @override
+  void initState() {
+    super.initState();
+    _setCustomMarker();
+  }
+
+  // Set custom marker for pet
+  Future<void> _setCustomMarker() async {
+    final BitmapDescriptor customIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(64, 64)),
+      'assets/images/pet_marker.png',
+    );
+
+    setState(() {
+      _petMarker = Marker(
+        markerId: const MarkerId('PetCurrentLocation'),
+        position: _petCurrentLocation,
+        infoWindow: const InfoWindow(title: '🐶 Pet Location'),
+        icon: customIcon,
+      );
+    });
+  }
+
+  // Footer navigation
   void _onTabTapped(int index) {
     if (index == _selectedIndex) return;
 
     if (index != _selectedIndex) {
-      // Navigate to profile page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     }
+
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  // switch to the google maps app
+  // Open location in Google Maps app
   Future<void> openInGoogleMaps(double lat, double lng) async {
     final Uri googleMapUrl = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
@@ -56,19 +88,26 @@ class _PetDetailsState extends State<PetDetails> {
     if (await canLaunchUrl(googleMapUrl)) {
       await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
     } else {
-      throw 'Could not open Google Maps.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cannot open Google Maps')));
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _petMarker = Marker(
-      markerId: const MarkerId('PetCurrentLocation'),
-      position: _petCurrentLocation,
-      infoWindow: const InfoWindow(title: '🐶 Pet Location'),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-    );
+  // Update Safe Zone Circle
+  void _updateSafeZoneCircle() {
+    if (_safeZoneLocation != null && _safeZoneRadius != null) {
+      setState(() {
+        _safeZoneCircle = Circle(
+          circleId: const CircleId('safeZone'),
+          center: _safeZoneLocation!,
+          radius: _safeZoneRadius!,
+          fillColor: Colors.blue.withOpacity(0.2),
+          strokeColor: Colors.blue,
+          strokeWidth: 2,
+        );
+      });
+    }
   }
 
   @override
@@ -77,127 +116,198 @@ class _PetDetailsState extends State<PetDetails> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          '🐾  Pet Details ...',
+          '🐾 Pet Details',
           style: TextStyle(color: AppColors.textPrimary),
         ),
         backgroundColor: AppColors.background,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
         child: Column(
           children: [
+            // Map
+            SizedBox(
+              height: 400,
+              width: double.infinity,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _petCurrentLocation,
+                  zoom: 15,
+                ),
+                onMapCreated: (controller) => _mapController = controller,
+                markers: _petMarker != null ? {_petMarker!} : {},
+                circles: _safeZoneCircle != null ? {_safeZoneCircle!} : {},
+                myLocationButtonEnabled: false,
+                compassEnabled: true,
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 🐾 Pet Image
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(50),
                   child: Image.asset(
                     widget.imagePath,
-                    width: 120,
-                    height: 120,
+                    width: 80,
+                    height: 80,
                     fit: BoxFit.cover,
                   ),
                 ),
+
+                // 🐶 Pet Info
                 Padding(
-                  padding: const EdgeInsets.only(left: 40, top: 5),
+                  padding: const EdgeInsets.only(left: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.name,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      // Pet name & status
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.name,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isPetInSafeZone
+                                ? 'In Safe Zone 🏠'
+                                : 'Have ${_distanceFromSafeZone} km From Safe Zone ⚠️',
+                            style: TextStyle(
+                               color: isPetInSafeZone ? Colors.green : Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        '$age years old',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
-                        ),
+
+                      const SizedBox(height: 5),
+
+                      // Device status row (connection + battery)
+                      Row(
+                        children: [
+                          // 🔌 Connection status
+                          Row(
+                            children: [
+                              Image.asset(
+                                'assets/images/online.png',
+                                width: 20,
+                                height: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isDeviceConnected
+                                    ? 'Connected'
+                                    : 'Disconnected',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(width: 20),
+
+                          // 🔋 Battery status
+                          Row(
+                            children: [
+                              Image.asset(
+                                'assets/images/battery.png',
+                                width: 20,
+                                height: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _batteryLife,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 30),
-            // 🗺️ Map section -------------------------
-            // SizedBox(
-            //   height: 300,
-            //   width: double.infinity,
-            //   child: GoogleMap(
-            //     initialCameraPosition: CameraPosition(
-            //       target: _petCurrentLocation,
-            //       zoom: 15,
-            //     ),
-            //     onMapCreated: (controller) => _mapController = controller,
-            //     markers: {_petMarker},
-            //     myLocationButtonEnabled: false,
-            //     compassEnabled: true,
-            //   ),
-            // ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.btnBack,
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => SafeZoneSelector()),
-                      );
-                      if (result != null) {
-                        setState(() {
-                          _safeZoneLocation = LatLng(
-                            result['latitude'],
-                            result['longitude'],
-                          );
-                          _safeZoneRadius = result['radius'];
-                        });
-                      }
-                    },
-                    child: const Text(
-                      'Update Safe Zone',
-                      style: TextStyle(color: AppColors.btnTextPrimary),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                SizedBox(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      openInGoogleMaps(
-                        _petCurrentLocation.latitude,
-                        _petCurrentLocation.longitude,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.btnBack,
-                    ),
-                    child: const Text(
-                      'Get Direction',
-                      style: TextStyle(color: AppColors.btnTextPrimary),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
 
-            // Text('Activity Logs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+            // Buttons
+            Wrap(
+  spacing: 10, // horizontal space between buttons
+  runSpacing: 10, // vertical space between rows when wrapping
+  alignment: WrapAlignment.center, // center the buttons
+  children: [
+    ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.btnBack,
+      ),
+      onPressed: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SafeZoneSelector(),
+          ),
+        );
+        if (result != null) {
+          setState(() {
+            _safeZoneLocation = LatLng(
+              result['latitude'],
+              result['longitude'],
+            );
+            _safeZoneRadius = result['radius'];
+            _updateSafeZoneCircle();
+          });
+        }
+      },
+      child: const Text(
+        'Update Safe Zone',
+        style: TextStyle(color: AppColors.btnTextPrimary),
+      ),
+    ),
+    ElevatedButton(
+      onPressed: () {
+        openInGoogleMaps(
+          _petCurrentLocation.latitude,
+          _petCurrentLocation.longitude,
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.btnBack,
+      ),
+      child: const Text(
+        'Get Direction',
+        style: TextStyle(color: AppColors.btnTextPrimary),
+      ),
+    ),
+    ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.btnBack,
+      ),
+      child: const Text(
+        'Turn On Buzzer',
+        style: TextStyle(color: AppColors.btnTextPrimary),
+      ),
+    ),
+  ],
+),
+
           ],
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.only(bottom: 15),
         child: AppFooter(
           currentIndex: _selectedIndex,
           onTabTapped: _onTabTapped,

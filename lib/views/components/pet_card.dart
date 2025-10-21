@@ -80,18 +80,18 @@ class PetCard extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.divider,
+                  backgroundColor: AppColors.btnBack,
                 ),
-                child: const Text('View Details'),
+                child: const Text('View Details',style: TextStyle(color: AppColors.btnTextPrimary),),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.divider,
-                ),
-                child: const Text('Track'),
-              ),
+              // ElevatedButton(
+              //   onPressed: () {},
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: AppColors.divider,
+              //   ),
+              //   child: const Text('Track'),
+              // ),
             ],
           ),
         ],
