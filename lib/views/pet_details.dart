@@ -28,8 +28,8 @@ class _PetDetailsState extends State<PetDetails> {
   GoogleMapController? _mapController;
   bool isPetInSafeZone = false;
   bool isDeviceConnected = true;
-  String _batteryLife = '64%';
-  double _distanceFromSafeZone = 10.0;
+  final String _batteryLife = '64%';
+  final double _distanceFromSafeZone = 10.0;
 
   // Pet location
   final LatLng _petCurrentLocation = const LatLng(6.8440, 80.0029);
@@ -178,9 +178,11 @@ class _PetDetailsState extends State<PetDetails> {
                           Text(
                             isPetInSafeZone
                                 ? 'In Safe Zone 🏠'
-                                : 'Have ${_distanceFromSafeZone} km From Safe Zone ⚠️',
+                                : 'Have $_distanceFromSafeZone km From Safe Zone ⚠️',
                             style: TextStyle(
-                               color: isPetInSafeZone ? Colors.green : Colors.red,
+                              color: isPetInSafeZone
+                                  ? Colors.green
+                                  : Colors.red,
                               fontSize: 14,
                             ),
                           ),
@@ -244,65 +246,64 @@ class _PetDetailsState extends State<PetDetails> {
 
             // Buttons
             Wrap(
-  spacing: 10, // horizontal space between buttons
-  runSpacing: 10, // vertical space between rows when wrapping
-  alignment: WrapAlignment.center, // center the buttons
-  children: [
-    ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.btnBack,
-      ),
-      onPressed: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const SafeZoneSelector(),
-          ),
-        );
-        if (result != null) {
-          setState(() {
-            _safeZoneLocation = LatLng(
-              result['latitude'],
-              result['longitude'],
-            );
-            _safeZoneRadius = result['radius'];
-            _updateSafeZoneCircle();
-          });
-        }
-      },
-      child: const Text(
-        'Update Safe Zone',
-        style: TextStyle(color: AppColors.btnTextPrimary),
-      ),
-    ),
-    ElevatedButton(
-      onPressed: () {
-        openInGoogleMaps(
-          _petCurrentLocation.latitude,
-          _petCurrentLocation.longitude,
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.btnBack,
-      ),
-      child: const Text(
-        'Get Direction',
-        style: TextStyle(color: AppColors.btnTextPrimary),
-      ),
-    ),
-    ElevatedButton(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.btnBack,
-      ),
-      child: const Text(
-        'Turn On Buzzer',
-        style: TextStyle(color: AppColors.btnTextPrimary),
-      ),
-    ),
-  ],
-),
-
+              spacing: 10, // horizontal space between buttons
+              runSpacing: 10, // vertical space between rows when wrapping
+              alignment: WrapAlignment.center, // center the buttons
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.btnBack,
+                  ),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SafeZoneSelector(),
+                      ),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        _safeZoneLocation = LatLng(
+                          result['latitude'],
+                          result['longitude'],
+                        );
+                        _safeZoneRadius = result['radius'];
+                        _updateSafeZoneCircle();
+                      });
+                    }
+                  },
+                  child: const Text(
+                    'Update Safe Zone',
+                    style: TextStyle(color: AppColors.btnTextPrimary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    openInGoogleMaps(
+                      _petCurrentLocation.latitude,
+                      _petCurrentLocation.longitude,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.btnBack,
+                  ),
+                  child: const Text(
+                    'Get Direction',
+                    style: TextStyle(color: AppColors.btnTextPrimary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.btnBack,
+                  ),
+                  child: const Text(
+                    'Turn On Buzzer',
+                    style: TextStyle(color: AppColors.btnTextPrimary),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:kazu/constants/app_colors.dart';
+import 'package:kazu/controllers/pet_controller.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/components/pet_card.dart';
 import 'package:kazu/views/pet_register.dart';
@@ -15,6 +18,25 @@ class _HomePageState extends State<HomePage> {
   final String userName = "Dharaka";
   final String notificationCount = "4";
   int _selectedIndex = 0;
+  List<Map<String, dynamic>> pets = [];
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPets();
+
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
+      _loadPets();
+    });
+  }
+
+  Future<void> _loadPets() async {
+    final petData = await getPetDetails();
+    setState(() {
+      pets = petData;
+    });
+  }
 
   void _onTabTapped(int index) {
     if (index == _selectedIndex) {}
@@ -38,28 +60,6 @@ class _HomePageState extends State<HomePage> {
     //   );
     // }
   }
-
-  // Example pets array
-  final List<Map<String, dynamic>> pets = [
-    {
-      'name': 'Puppy',
-      'deviceId': 'id001',
-      'image': 'assets/images/avators.png',
-      'isInsideSafeZone': true,
-    },
-    {
-      'name': 'Kitty',
-      'deviceId': 'id002',
-      'image': 'assets/images/avators.png',
-      'isInsideSafeZone': false,
-    },
-    {
-      'name': 'Buddy',
-      'deviceId': 'id003',
-      'image': 'assets/images/avators.png',
-      'isInsideSafeZone': true,
-    },
-  ];
 
   // 🔔 Show notification panel
   void _showNotificationPanel() {
@@ -284,6 +284,7 @@ class _HomePageState extends State<HomePage> {
                       name: pet['name'],
                       deviceId: pet['deviceId'],
                       isInsideSafeZone: pet['isInsideSafeZone'],
+
                       // imagePath: pet['image'], // optional
                     ),
                   );

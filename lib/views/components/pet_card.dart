@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:kazu/constants/app_colors.dart';
 import 'package:kazu/views/pet_details.dart';
@@ -83,7 +85,10 @@ class PetCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.btnBack,
                 ),
-                child: const Text('View Details',style: TextStyle(color: AppColors.btnTextPrimary),),
+                child: const Text(
+                  'View Details',
+                  style: TextStyle(color: AppColors.btnTextPrimary),
+                ),
               ),
               const SizedBox(width: 8),
               // ElevatedButton(
