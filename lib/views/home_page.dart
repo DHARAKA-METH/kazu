@@ -268,17 +268,27 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 20),
 
             // --- Pet Cards List ---
-            Column(
-              children: pets
-                  .map(
-                    (pet) => PetCard(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 0,
+                vertical: 8,
+              ), // outer padding
+              child: Row(
+                children: pets.map((pet) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      right: 12,
+                    ), // space between cards
+                    child: PetCard(
                       name: pet['name'],
                       deviceId: pet['deviceId'],
                       isInsideSafeZone: pet['isInsideSafeZone'],
-                      // imagePath: pet['image'],
+                      // imagePath: pet['image'], // optional
                     ),
-                  )
-                  .toList(),
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),
