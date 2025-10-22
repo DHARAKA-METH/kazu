@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kazu/constants/app_colors.dart';
+import 'package:kazu/services/pet_services.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/home_page.dart';
 import 'package:kazu/views/safe_zone_selector.dart';
@@ -23,27 +26,55 @@ class PetDetails extends StatefulWidget {
 }
 
 class _PetDetailsState extends State<PetDetails> {
+  // variables
   int _selectedIndex = 2;
+  RealtimePetService _service = RealtimePetService();
+  Map<String, dynamic>? petLiveData;
+  Timer? _timer;
   String age = '06';
-  GoogleMapController? _mapController;
   bool isPetInSafeZone = false;
   bool isDeviceConnected = true;
-  final String _batteryLife = '64%';
-  final double _distanceFromSafeZone = 10.0;
+  String _batteryLife = '64%';
+  double _distanceFromSafeZone = 10.0;
+  LatLng _petCurrentLocation = const LatLng(6.8440, 80.0029);
 
-  // Pet location
-  final LatLng _petCurrentLocation = const LatLng(6.8440, 80.0029);
-  Marker? _petMarker;
-
+  GoogleMapController? _mapController;
   // Safe zone
   LatLng? _safeZoneLocation;
   double? _safeZoneRadius;
   Circle? _safeZoneCircle;
 
+  Marker? _petMarker;
+
   @override
   void initState() {
     super.initState();
     _setCustomMarker();
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
+      _loadPetLiveData();
+    });
+  }
+
+  Future<void> _loadPetLiveData() async {
+    final data = await _service.fetchPetLive(widget.deviceId);
+    setState(() {
+      if (data != null) {
+        petLiveData = data;
+        // Update status
+        isPetInSafeZone = data['isInsideSafeZone'] ?? true;
+        isDeviceConnected = data['isConnected'] ?? false;
+        _batteryLife = "${data['batteryLevel'] ?? 0}%";
+
+        // Update pet location
+        final loc = data['currentLocation'];
+        if (loc != null) {
+          _petCurrentLocation = LatLng(
+            (loc['lat'] ?? 0).toDouble(),
+            (loc['lng'] ?? 0).toDouble(),
+          );
+        }
+      }
+    });
   }
 
   // Set custom marker for pet
