@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "566373144403",
+    "project_id": "project-kazu-fd451",
+    "storage_bucket": "project-kazu-fd451.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566373144403:android:b8fc7f6b55f7aca21fb3a6",
+        "android_client_info": {
+          "package_name": "com.example.kazu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnoBuEvR77wDkwEQSIDtOP0MkcFs0xJe0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
