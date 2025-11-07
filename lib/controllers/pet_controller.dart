@@ -1,6 +1,5 @@
 import 'package:kazu/models/pet_model.dart';
 import 'package:kazu/services/pet_services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 final PetService _petService = PetService();
 

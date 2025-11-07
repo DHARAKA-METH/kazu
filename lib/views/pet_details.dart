@@ -28,14 +28,14 @@ class PetDetails extends StatefulWidget {
 class _PetDetailsState extends State<PetDetails> {
   // variables
   int _selectedIndex = 2;
-  RealtimePetService _service = RealtimePetService();
+  final RealtimePetService _service = RealtimePetService();
   Map<String, dynamic>? petLiveData;
   Timer? _timer;
   String age = '06';
   bool isPetInSafeZone = false;
   bool isDeviceConnected = true;
   String _batteryLife = '64%';
-  double _distanceFromSafeZone = 10.0;
+  final double _distanceFromSafeZone = 10.0;
   LatLng _petCurrentLocation = const LatLng(6.8440, 80.0029);
 
   GoogleMapController? _mapController;

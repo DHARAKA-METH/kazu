@@ -51,6 +51,7 @@ class DefaultFirebaseOptions {
     appId: '1:566373144403:android:b8fc7f6b55f7aca21fb3a6',
     messagingSenderId: '566373144403',
     projectId: 'project-kazu-fd451',
+    databaseURL: 'https://project-kazu-fd451-default-rtdb.firebaseio.com',
     storageBucket: 'project-kazu-fd451.firebasestorage.app',
   );
 
@@ -59,6 +60,7 @@ class DefaultFirebaseOptions {
     appId: '1:566373144403:ios:88713b0a7f1f54dc1fb3a6',
     messagingSenderId: '566373144403',
     projectId: 'project-kazu-fd451',
+    databaseURL: 'https://project-kazu-fd451-default-rtdb.firebaseio.com',
     storageBucket: 'project-kazu-fd451.firebasestorage.app',
     iosBundleId: 'com.example.kazu',
   );
@@ -68,7 +70,9 @@ class DefaultFirebaseOptions {
     appId: '1:566373144403:ios:88713b0a7f1f54dc1fb3a6',
     messagingSenderId: '566373144403',
     projectId: 'project-kazu-fd451',
+    databaseURL: 'https://project-kazu-fd451-default-rtdb.firebaseio.com',
     storageBucket: 'project-kazu-fd451.firebasestorage.app',
     iosBundleId: 'com.example.kazu',
   );
+
 }
