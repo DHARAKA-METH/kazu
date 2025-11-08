@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kazu/constants/app_colors.dart';
+import 'package:kazu/controllers/pet_controller.dart';
 import 'package:kazu/services/pet_services.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/home_page.dart';
@@ -26,6 +27,13 @@ class PetDetails extends StatefulWidget {
 }
 
 class _PetDetailsState extends State<PetDetails> {
+  // MQTT data
+  late String selectedPet;
+  final MqttHelper mqttHelper = MqttHelper();
+  Map<String, dynamic>? deviceData;
+  StreamSubscription<Map<String, dynamic>>? _subscription;
+  
+
   // variables
   int _selectedIndex = 2;
   final RealtimePetService _service = RealtimePetService();
@@ -49,10 +57,32 @@ class _PetDetailsState extends State<PetDetails> {
   @override
   void initState() {
     super.initState();
+
+    // Subscribe to MQTT live data stream
+     selectedPet =widget.deviceId;
+    _subscription = mqttHelper.connectAndListen(selectedPet).listen((data) {
+      setState(() {
+        deviceData = data;
+      });
+    });
+
+    @override
+    void dispose() {
+      _subscription?.cancel();
+      _timer?.cancel();
+      super.dispose();
+    }
+
     _setCustomMarker();
     _timer = Timer.periodic(Duration(minutes: 1), (timer) {
       _loadPetLiveData();
     });
+
+    _timer = Timer.periodic(const Duration(seconds: 5), (_){
+
+     print('🔴🔴 🔴 🔴 🔴 🔴  Live Data for : $deviceData');
+    });
+    
   }
 
   Future<void> _loadPetLiveData() async {

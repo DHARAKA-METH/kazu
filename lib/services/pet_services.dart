@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 import '../models/pet_model.dart';
 
 class PetService {
@@ -45,5 +48,75 @@ class RealtimePetService {
       print('❌ Error fetching pet live data: $e');
       return null;
     }
+  }
+}
+
+
+ // MQTT Service for real-time communication
+class MqttService {
+  late MqttServerClient client;
+  String currentDeviceId = "";
+
+  // Callback for Flutter UI
+  Function(Map<String, dynamic>)? onDeviceUpdate;
+
+  // Connect to MQTT broker
+  Future<void> connect() async {
+    client = MqttServerClient('broker.hivemq.com', 'flutter_app_client');
+    client.port = 1883;
+    client.logging(on: false);
+    client.keepAlivePeriod = 30;
+
+    client.onConnected = () => print('✅ Connected to MQTT broker');
+    client.onDisconnected = () => print('❌ Disconnected from MQTT broker');
+
+    client.connectionMessage = MqttConnectMessage()
+        .withClientIdentifier('flutter_app_client')
+        .startClean();
+
+    try {
+      await client.connect();
+    } catch (e) {
+      print('MQTT connection failed: $e');
+      client.disconnect();
+      return;
+    }
+
+    // Listen for incoming messages
+    client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? messages) {
+      final recMess = messages![0].payload as MqttPublishMessage;
+      final payload = MqttPublishPayload.bytesToStringAsString(
+        recMess.payload.message,
+      );
+
+      final data = jsonDecode(payload);
+      if (onDeviceUpdate != null) onDeviceUpdate!(data);
+    });
+  }
+
+  // Subscribe to a device
+  void subscribeToDevice(String deviceId) {
+    // Unsubscribe previous device
+    if (currentDeviceId.isNotEmpty) {
+      client.unsubscribe('pets_live/$currentDeviceId/data');
+      print('Unsubscribed from $currentDeviceId');
+    }
+
+    // Subscribe new device
+    currentDeviceId = deviceId;
+    client.subscribe('pets_live/$deviceId/data', MqttQos.atMostOnce);
+    print('Subscribed to $deviceId');
+  }
+
+  // Send command to device
+  void sendCommand(String deviceId, Map<String, dynamic> command) {
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(jsonEncode(command));
+    client.publishMessage(
+      'pets_live/$deviceId/control',
+      MqttQos.atMostOnce,
+      builder.payload!,
+    );
+    print('📤 Sent command: $command to $deviceId');
   }
 }
