@@ -51,8 +51,7 @@ class RealtimePetService {
   }
 }
 
-
- // MQTT Service for real-time communication
+// MQTT Service for real-time communication
 class MqttService {
   late MqttServerClient client;
   String currentDeviceId = "";
@@ -68,7 +67,9 @@ class MqttService {
     client.keepAlivePeriod = 30;
 
     client.onConnected = () => print('✅ Connected to MQTT broker');
-    client.onDisconnected = () => print('❌ Disconnected from MQTT broker');
+    client.onDisconnected = () {
+      print('❌ Disconnected from MQTT broker');
+    };
 
     client.connectionMessage = MqttConnectMessage()
         .withClientIdentifier('flutter_app_client')
@@ -118,5 +119,23 @@ class MqttService {
       builder.payload!,
     );
     print('📤 Sent command: $command to $deviceId');
+  }
+
+  /// reconnect logic
+
+  void _reconnect() async {
+    const retryDelay = Duration(seconds: 5);
+    print('🔄 Attempting reconnect in 5 seconds...');
+    await Future.delayed(retryDelay);
+    try {
+      await connect();
+      if (currentDeviceId.isNotEmpty) {
+        subscribeToDevice(currentDeviceId);
+        print('✅ Reconnected and resubscribed to $currentDeviceId');
+      }
+    } catch (e) {
+      print('❌ Reconnect failed: $e');
+      _reconnect(); // keep retrying
+    }
   }
 }

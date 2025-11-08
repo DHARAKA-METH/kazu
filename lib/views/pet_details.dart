@@ -27,85 +27,112 @@ class PetDetails extends StatefulWidget {
 }
 
 class _PetDetailsState extends State<PetDetails> {
+  int _selectedIndex = 2;
+  Timer? _timer;
+  final RealtimePetService _service = RealtimePetService();
+  final MqttHelper mqttHelper = MqttHelper();
+
   // MQTT data
   late String selectedPet;
-  final MqttHelper mqttHelper = MqttHelper();
   Map<String, dynamic>? deviceData;
   StreamSubscription<Map<String, dynamic>>? _subscription;
-  
 
   // variables
-  int _selectedIndex = 2;
-  final RealtimePetService _service = RealtimePetService();
   Map<String, dynamic>? petLiveData;
-  Timer? _timer;
   String age = '06';
   bool isPetInSafeZone = false;
-  bool isDeviceConnected = true;
-  String _batteryLife = '64%';
   final double _distanceFromSafeZone = 10.0;
-  LatLng _petCurrentLocation = const LatLng(6.8440, 80.0029);
 
   GoogleMapController? _mapController;
   // Safe zone
-  LatLng? _safeZoneLocation;
+  LatLng? _safeZone_Location;
   double? _safeZoneRadius;
   Circle? _safeZoneCircle;
-
   Marker? _petMarker;
+
+  LatLng _petCurrent_Location = const LatLng(6.8440, 80.0029);
+  bool isDeviceConnected = false;
+  String _batteryLife = '6%';
 
   @override
   void initState() {
     super.initState();
 
     // Subscribe to MQTT live data stream
-     selectedPet =widget.deviceId;
+    selectedPet = widget.deviceId;
     _subscription = mqttHelper.connectAndListen(selectedPet).listen((data) {
       setState(() {
         deviceData = data;
-      });
-    });
+        final _loc = deviceData?['currentLocation'];
+        if (_loc != null) {
+          _petCurrent_Location = LatLng(
+            (_loc['lat'] ?? 0).toDouble(),
+            (_loc['lng'] ?? 0).toDouble(),
+          );
+        }
 
-    @override
-    void dispose() {
-      _subscription?.cancel();
-      _timer?.cancel();
-      super.dispose();
-    }
+        // Update pet marker in map
+        _petMarker = Marker(
+          markerId: const MarkerId('PetCurrent_Location'),
+          position: _petCurrent_Location,
+          infoWindow: const InfoWindow(title: '🐶 Pet Location'),
+          icon: _petMarker?.icon ?? BitmapDescriptor.defaultMarker,
+        );
 
-    _setCustomMarker();
-    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
-      _loadPetLiveData();
-    });
+        if (_mapController != null) {
+          _mapController!.animateCamera(
+            CameraUpdate.newLatLng(_petCurrent_Location),
+          );
+        }
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (_){
-
-     print('🔴🔴 🔴 🔴 🔴 🔴  Live Data for : $deviceData');
-    });
-    
-  }
-
-  Future<void> _loadPetLiveData() async {
-    final data = await _service.fetchPetLive(widget.deviceId);
-    setState(() {
-      if (data != null) {
-        petLiveData = data;
-        // Update status
         isPetInSafeZone = data['isInsideSafeZone'] ?? true;
         isDeviceConnected = data['isConnected'] ?? false;
         _batteryLife = "${data['batteryLevel'] ?? 0}%";
 
-        // Update pet location
-        final loc = data['currentLocation'];
-        if (loc != null) {
-          _petCurrentLocation = LatLng(
-            (loc['lat'] ?? 0).toDouble(),
-            (loc['lng'] ?? 0).toDouble(),
-          );
-        }
-      }
+        print(
+          '-------------"_petCurrent_Location" -- ${_petCurrent_Location} ----------------------',
+        );
+      });
     });
+
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      print('🔴🔴 🔴 🔴 🔴 🔴  Live Data for : $deviceData');
+    });
+
+    _setCustomMarker();
+    // _timer = Timer.periodic(Duration(minutes: 1), (timer) {
+    //   _loadPetLiveData();
+    // });
   }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  // Future<void> _loadPetLiveData() async {
+  //   final data = await _service.fetchPetLive(widget.deviceId);
+  //   setState(() {
+  //     if (data != null) {
+  //       petLiveData = data;
+  //       // Update status
+  //       isPetInSafeZone = data['isInsideSafeZone'] ?? true;
+  //       isDeviceConnected = data['isConnected'] ?? false;
+  //       _batteryLife = "${data['batteryLevel'] ?? 0}%";
+
+  //       // Update pet _location
+  //       final _loc = data['current_Location'];
+  //       if (_loc != null) {
+  //         _petCurrent_Location = LatLng(
+  //           (_loc['lat'] ?? 0).toDouble(),
+  //           (_loc['lng'] ?? 0).toDouble(),
+  //         );
+  //       }
+  //     }
+  //   });
+  // }
 
   // Set custom marker for pet
   Future<void> _setCustomMarker() async {
@@ -116,9 +143,9 @@ class _PetDetailsState extends State<PetDetails> {
 
     setState(() {
       _petMarker = Marker(
-        markerId: const MarkerId('PetCurrentLocation'),
-        position: _petCurrentLocation,
-        infoWindow: const InfoWindow(title: '🐶 Pet Location'),
+        markerId: const MarkerId('PetCurrent_Location'),
+        position: _petCurrent_Location,
+        infoWindow: const InfoWindow(title: '🐶 Pet _Location'),
         icon: customIcon,
       );
     });
@@ -140,7 +167,7 @@ class _PetDetailsState extends State<PetDetails> {
     });
   }
 
-  // Open location in Google Maps app
+  // Open _location in Google Maps app
   Future<void> openInGoogleMaps(double lat, double lng) async {
     final Uri googleMapUrl = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
@@ -157,11 +184,11 @@ class _PetDetailsState extends State<PetDetails> {
 
   // Update Safe Zone Circle
   void _updateSafeZoneCircle() {
-    if (_safeZoneLocation != null && _safeZoneRadius != null) {
+    if (_safeZone_Location != null && _safeZoneRadius != null) {
       setState(() {
         _safeZoneCircle = Circle(
           circleId: const CircleId('safeZone'),
-          center: _safeZoneLocation!,
+          center: _safeZone_Location!,
           radius: _safeZoneRadius!,
           fillColor: Colors.blue.withOpacity(0.2),
           strokeColor: Colors.blue,
@@ -192,7 +219,7 @@ class _PetDetailsState extends State<PetDetails> {
               width: double.infinity,
               child: GoogleMap(
                 initialCameraPosition: CameraPosition(
-                  target: _petCurrentLocation,
+                  target: _petCurrent_Location,
                   zoom: 15,
                 ),
                 onMapCreated: (controller) => _mapController = controller,
@@ -324,7 +351,7 @@ class _PetDetailsState extends State<PetDetails> {
                     );
                     if (result != null) {
                       setState(() {
-                        _safeZoneLocation = LatLng(
+                        _safeZone_Location = LatLng(
                           result['latitude'],
                           result['longitude'],
                         );
@@ -341,8 +368,8 @@ class _PetDetailsState extends State<PetDetails> {
                 ElevatedButton(
                   onPressed: () {
                     openInGoogleMaps(
-                      _petCurrentLocation.latitude,
-                      _petCurrentLocation.longitude,
+                      _petCurrent_Location.latitude,
+                      _petCurrent_Location.longitude,
                     );
                   },
                   style: ElevatedButton.styleFrom(

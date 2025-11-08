@@ -32,15 +32,15 @@ Future<List<Map<String, dynamic>>> getPetDetails() async {
   return petDetails;
 }
 
-
-/// Fetch live data form MQTT 
+/// Fetch live data form MQTT
 class MqttHelper {
   final MqttService mqttService = MqttService();
   Timer? _timer;
 
   /// Connects to MQTT, subscribes to device, and returns a stream of live data
   Stream<Map<String, dynamic>> connectAndListen(String deviceId) {
-    final StreamController<Map<String, dynamic>> controller = StreamController();
+    final StreamController<Map<String, dynamic>> controller =
+        StreamController();
 
     mqttService.connect().then((_) {
       // Subscribe to the selected device
@@ -53,7 +53,6 @@ class MqttHelper {
 
       // Send initial connect command
       mqttService.sendCommand(deviceId, {"command": "connect"});
-
     });
 
     // Cancel timer when stream is closed
@@ -64,4 +63,3 @@ class MqttHelper {
     return controller.stream;
   }
 }
-

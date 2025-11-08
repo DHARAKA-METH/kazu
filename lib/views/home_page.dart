@@ -26,12 +26,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadPets();
 
-
     _timer = Timer.periodic(Duration(minutes: 1), (timer) {
       _loadPets();
     });
   }
-
 
   Future<void> _loadPets() async {
     final petData = await getPetDetails();
