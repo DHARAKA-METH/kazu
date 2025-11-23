@@ -86,7 +86,7 @@ class _PetDetailsState extends State<PetDetails> {
           );
         }
 
-        isPetInSafeZone = data['isInsideSafeZone'] ?? true;
+        isPetInSafeZone = data['isInSafeZone'] ?? true;
         isPetSleeping = data['isPetSleep'] ?? false;
         isDeviceConnected = data['isConnected'] ?? false;
         _batteryLife = "${data['batteryLevel'] ?? 0}%";
@@ -279,7 +279,7 @@ class _PetDetailsState extends State<PetDetails> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            isPetInSafeZone
+                            isPetSleeping
                                 ? 'Pet is Calm and Resting 💤'
                                 : 'Pet is Playful/Active 🐾',
                             style: TextStyle(
