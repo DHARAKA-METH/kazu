@@ -42,21 +42,21 @@ class _PetDetailsState extends State<PetDetails> {
   StreamSubscription<Map<String, dynamic>>? _subscription;
 
   // variables
-  Map<String, dynamic>? petLiveData;
-  String age = '06';
   bool isPetInSafeZone = false;
   bool isPetSleeping = false;
-  final double _distanceFromSafeZone = 10.0;
 
   GoogleMapController? _mapController;
-  // Safe zone
-  LatLng? _safeZone_Location;
-  double? _safeZoneRadius;
-  Circle? _safeZoneCircle;
-  Marker? _petMarker;
 
-  late LatLng _petCurrent_Location;
-  // LatLng _petCurrent_Location = const LatLng(6.8440, 80.0029);
+  // Safe zone
+  late LatLng _safeZoneLocation;
+  late double _safeZoneRadius;
+  Circle? _safeZoneCircle;
+
+  Marker? _petMarker;
+  Marker? _safeZoneMarker;
+
+  late LatLng _petCurrentLocation;
+
   bool isDeviceConnected = false;
   String _batteryLife = '6%';
 
@@ -64,54 +64,54 @@ class _PetDetailsState extends State<PetDetails> {
   void initState() {
     super.initState();
 
-    // Subscribe to MQTT live data stream
     selectedPet = widget.deviceId;
-    // initialize current pet location from the passed safe zone coordinates
-    _petCurrent_Location = widget.safeZoneCoordinates;
+
+    // Initialize locations
+    _petCurrentLocation = widget.safeZoneCoordinates;
+    _safeZoneLocation = widget.safeZoneCoordinates;
+    _safeZoneRadius = widget.safeZoneRadius;
+
+    // Initialize safe zone circle
+    _updateSafeZoneCircle();
+
+    // Subscribe to MQTT live data
     _subscription = mqttHelper.connectAndListen(selectedPet).listen((data) {
       setState(() {
         deviceData = data;
+
         final loc = deviceData?['currentLocation'];
         if (loc != null) {
-          _petCurrent_Location = LatLng(
+          _petCurrentLocation = LatLng(
             (loc['lat'] ?? 0).toDouble(),
             (loc['lng'] ?? 0).toDouble(),
           );
         }
 
-        // Update pet marker in map
+        // Update pet marker
         _petMarker = Marker(
           markerId: const MarkerId('PetCurrent_Location'),
-          position: _petCurrent_Location,
+          position: _petCurrentLocation,
           infoWindow: const InfoWindow(title: '🐶 Pet Location'),
           icon: _petMarker?.icon ?? BitmapDescriptor.defaultMarker,
         );
 
-        if (_mapController != null) {
-          _mapController!.animateCamera(
-            CameraUpdate.newLatLng(_petCurrent_Location),
-          );
-        }
+        // Animate camera to pet location
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLng(_petCurrentLocation),
+        );
 
         isPetInSafeZone = data['isInSafeZone'] ?? true;
         isPetSleeping = data['isPetSleep'] ?? false;
         isDeviceConnected = data['isConnected'] ?? false;
         _batteryLife = "${data['batteryLevel'] ?? 0}%";
-
-        print(
-          '-------------"_petCurrent_Location" -- $_petCurrent_Location ----------------------',
-        );
       });
     });
 
     _timer = Timer.periodic(const Duration(seconds: 5), (_) {
-      print('🔴🔴 🔴 🔴 🔴 🔴  Live Data for : $deviceData');
+      print('🔴 Live Data: $deviceData');
     });
 
     _setCustomMarker();
-    // _timer = Timer.periodic(Duration(minutes: 1), (timer) {
-    //   _loadPetLiveData();
-    // });
   }
 
   @override
@@ -121,29 +121,6 @@ class _PetDetailsState extends State<PetDetails> {
     super.dispose();
   }
 
-  // Future<void> _loadPetLiveData() async {
-  //   final data = await _service.fetchPetLive(widget.deviceId);
-  //   setState(() {
-  //     if (data != null) {
-  //       petLiveData = data;
-  //       // Update status
-  //       isPetInSafeZone = data['isInsideSafeZone'] ?? true;
-  //       isDeviceConnected = data['isConnected'] ?? false;
-  //       _batteryLife = "${data['batteryLevel'] ?? 0}%";
-
-  //       // Update pet _location
-  //       final _loc = data['current_Location'];
-  //       if (_loc != null) {
-  //         _petCurrent_Location = LatLng(
-  //           (_loc['lat'] ?? 0).toDouble(),
-  //           (_loc['lng'] ?? 0).toDouble(),
-  //         );
-  //       }
-  //     }
-  //   });
-  // }
-
-  // Set custom marker for pet
   Future<void> _setCustomMarker() async {
     final BitmapDescriptor customIcon = await BitmapDescriptor.fromAssetImage(
       const ImageConfiguration(size: Size(64, 64)),
@@ -153,30 +130,26 @@ class _PetDetailsState extends State<PetDetails> {
     setState(() {
       _petMarker = Marker(
         markerId: const MarkerId('PetCurrent_Location'),
-        position: _petCurrent_Location,
-        infoWindow: const InfoWindow(title: '🐶 Pet _Location'),
+        position: _petCurrentLocation,
+        infoWindow: const InfoWindow(title: '🐶 Pet Location'),
         icon: customIcon,
       );
     });
   }
 
-  // Footer navigation
   void _onTabTapped(int index) {
     if (index == _selectedIndex) return;
 
-    if (index != _selectedIndex) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+    );
 
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  // Open _location in Google Maps app
   Future<void> openInGoogleMaps(double lat, double lng) async {
     final Uri googleMapUrl = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
@@ -191,20 +164,22 @@ class _PetDetailsState extends State<PetDetails> {
     }
   }
 
-  // Update Safe Zone Circle
   void _updateSafeZoneCircle() {
-    if (_safeZone_Location != null && _safeZoneRadius != null) {
-      setState(() {
-        _safeZoneCircle = Circle(
-          circleId: const CircleId('safeZone'),
-          center: _safeZone_Location!,
-          radius: _safeZoneRadius!,
-          fillColor: Colors.blue.withOpacity(0.2),
-          strokeColor: Colors.blue,
-          strokeWidth: 2,
-        );
-      });
-    }
+    _safeZoneCircle = Circle(
+      circleId: const CircleId('safeZone'),
+      center: _safeZoneLocation,
+      radius: _safeZoneRadius,
+      strokeColor: Colors.blue.withOpacity(0.7),
+      fillColor: Colors.blue.withOpacity(0.3),
+      strokeWidth: 2,
+    );
+
+     _safeZoneMarker = Marker(
+      markerId: const MarkerId('SafeZone'),
+      position: _safeZoneLocation,
+      infoWindow: const InfoWindow(title: 'Safe Zone 🏠'),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    );
   }
 
   @override
@@ -222,17 +197,19 @@ class _PetDetailsState extends State<PetDetails> {
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
         child: Column(
           children: [
-            // Map
             SizedBox(
               height: 400,
               width: double.infinity,
               child: GoogleMap(
                 initialCameraPosition: CameraPosition(
-                  target: _petCurrent_Location,
+                  target: _petCurrentLocation,
                   zoom: 15,
                 ),
                 onMapCreated: (controller) => _mapController = controller,
-                markers: _petMarker != null ? {_petMarker!} : {},
+                markers: {
+                  if (_petMarker != null) _petMarker!,
+                  if (_safeZoneMarker != null) _safeZoneMarker!,
+                },
                 circles: _safeZoneCircle != null ? {_safeZoneCircle!} : {},
                 myLocationButtonEnabled: false,
                 compassEnabled: true,
@@ -242,7 +219,6 @@ class _PetDetailsState extends State<PetDetails> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🐾 Pet Image
                 ClipRRect(
                   borderRadius: BorderRadius.circular(50),
                   child: Image.asset(
@@ -252,98 +228,70 @@ class _PetDetailsState extends State<PetDetails> {
                     fit: BoxFit.cover,
                   ),
                 ),
-
-                // 🐶 Pet Info
                 Padding(
                   padding: const EdgeInsets.only(left: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Pet name & status
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.name,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isPetInSafeZone
-                                ? 'In Safe Zone 🏠'
-                                : 'Out of Safe Zone ⚠️',
-                            // 'Have $_distanceFromSafeZone km From Safe Zone ⚠️',
-                            style: TextStyle(
-                              color: isPetInSafeZone
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isPetSleeping
-                                ? 'Pet is Calm and Resting 💤'
-                                : 'Pet is Playful/Active 🐾',
-                            style: TextStyle(
-                              color: isPetSleeping
-                                  ? Colors.green
-                                  : const Color.fromARGB(255, 26, 12, 226),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        widget.name,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-
+                      const SizedBox(height: 4),
+                      Text(
+                        isPetInSafeZone
+                            ? 'In Safe Zone 🏠'
+                            : 'Out of Safe Zone ⚠️',
+                        style: TextStyle(
+                          color: isPetInSafeZone ? Colors.green : Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isPetSleeping
+                            ? 'Pet is Calm and Resting 💤'
+                            : 'Pet is Playful/Active 🐾',
+                        style: TextStyle(
+                          color: isPetSleeping
+                              ? Colors.green
+                              : const Color.fromARGB(255, 26, 12, 226),
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(height: 5),
-
-                      // Device status row (connection + battery)
                       Row(
                         children: [
-                          // 🔌 Connection status
-                          Row(
-                            children: [
-                              Image.asset(
-                                'assets/images/online.png',
-                                width: 20,
-                                height: 20,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isDeviceConnected
-                                    ? 'Connected'
-                                    : 'Disconnected',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                          Image.asset(
+                            'assets/images/online.png',
+                            width: 20,
+                            height: 20,
                           ),
-
+                          const SizedBox(width: 6),
+                          Text(
+                            isDeviceConnected ? 'Connected' : 'Disconnected',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
+                          ),
                           const SizedBox(width: 20),
-
-                          // 🔋 Battery status
-                          Row(
-                            children: [
-                              Image.asset(
-                                'assets/images/battery.png',
-                                width: 20,
-                                height: 20,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _batteryLife,
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                          Image.asset(
+                            'assets/images/battery.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _batteryLife,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
@@ -353,12 +301,10 @@ class _PetDetailsState extends State<PetDetails> {
               ],
             ),
             const SizedBox(height: 20),
-
-            // Buttons
             Wrap(
-              spacing: 10, // horizontal space between buttons
-              runSpacing: 10, // vertical space between rows when wrapping
-              alignment: WrapAlignment.center, // center the buttons
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -373,7 +319,7 @@ class _PetDetailsState extends State<PetDetails> {
                     );
                     if (result != null) {
                       setState(() {
-                        _safeZone_Location = LatLng(
+                        _safeZoneLocation = LatLng(
                           result['latitude'],
                           result['longitude'],
                         );
@@ -388,25 +334,25 @@ class _PetDetailsState extends State<PetDetails> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    openInGoogleMaps(
-                      _petCurrent_Location.latitude,
-                      _petCurrent_Location.longitude,
-                    );
-                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.btnBack,
                   ),
+                  onPressed: () {
+                    openInGoogleMaps(
+                      _petCurrentLocation.latitude,
+                      _petCurrentLocation.longitude,
+                    );
+                  },
                   child: const Text(
                     'Get Direction',
                     style: TextStyle(color: AppColors.btnTextPrimary),
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.btnBack,
                   ),
+                  onPressed: () {},
                   child: const Text(
                     'Turn On Buzzer',
                     style: TextStyle(color: AppColors.btnTextPrimary),

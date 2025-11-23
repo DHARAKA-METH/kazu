@@ -49,7 +49,8 @@ class _SafeZoneSelectorState extends State<SafeZoneSelector> {
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-
+    
+    if (!mounted) return;
     setState(() {
       _initialPosition = CameraPosition(
         target: LatLng(position.latitude, position.longitude),
