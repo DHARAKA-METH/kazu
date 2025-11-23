@@ -41,6 +41,7 @@ class _PetDetailsState extends State<PetDetails> {
   Map<String, dynamic>? petLiveData;
   String age = '06';
   bool isPetInSafeZone = false;
+  bool isPetSleeping = false;
   final double _distanceFromSafeZone = 10.0;
 
   GoogleMapController? _mapController;
@@ -63,11 +64,11 @@ class _PetDetailsState extends State<PetDetails> {
     _subscription = mqttHelper.connectAndListen(selectedPet).listen((data) {
       setState(() {
         deviceData = data;
-        final _loc = deviceData?['currentLocation'];
-        if (_loc != null) {
+        final loc = deviceData?['currentLocation'];
+        if (loc != null) {
           _petCurrent_Location = LatLng(
-            (_loc['lat'] ?? 0).toDouble(),
-            (_loc['lng'] ?? 0).toDouble(),
+            (loc['lat'] ?? 0).toDouble(),
+            (loc['lng'] ?? 0).toDouble(),
           );
         }
 
@@ -86,11 +87,12 @@ class _PetDetailsState extends State<PetDetails> {
         }
 
         isPetInSafeZone = data['isInsideSafeZone'] ?? true;
+        isPetSleeping = data['isPetSleep'] ?? false;
         isDeviceConnected = data['isConnected'] ?? false;
         _batteryLife = "${data['batteryLevel'] ?? 0}%";
 
         print(
-          '-------------"_petCurrent_Location" -- ${_petCurrent_Location} ----------------------',
+          '-------------"_petCurrent_Location" -- $_petCurrent_Location ----------------------',
         );
       });
     });
@@ -266,11 +268,24 @@ class _PetDetailsState extends State<PetDetails> {
                           Text(
                             isPetInSafeZone
                                 ? 'In Safe Zone 🏠'
-                                : 'Have $_distanceFromSafeZone km From Safe Zone ⚠️',
+                                : 'Out of Safe Zone ⚠️',
+                                // 'Have $_distanceFromSafeZone km From Safe Zone ⚠️',
                             style: TextStyle(
                               color: isPetInSafeZone
                                   ? Colors.green
                                   : Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isPetInSafeZone
+                                ? 'Pet is Calm and Resting 💤'
+                                : 'Pet is Playful/Active 🐾',
+                            style: TextStyle(
+                              color: isPetSleeping
+                                  ? Colors.green
+                                  : const Color.fromARGB(255, 26, 12, 226),
                               fontSize: 14,
                             ),
                           ),
