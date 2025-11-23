@@ -14,12 +14,16 @@ class PetDetails extends StatefulWidget {
   final String name;
   final String deviceId;
   final String imagePath;
+  final LatLng safeZoneCoordinates;
+  final double safeZoneRadius;
 
   const PetDetails({
     super.key,
     required this.name,
     required this.deviceId,
     required this.imagePath,
+    required this.safeZoneCoordinates,
+    required this.safeZoneRadius,
   });
 
   @override
@@ -51,7 +55,8 @@ class _PetDetailsState extends State<PetDetails> {
   Circle? _safeZoneCircle;
   Marker? _petMarker;
 
-  LatLng _petCurrent_Location = const LatLng(6.8440, 80.0029);
+  late LatLng _petCurrent_Location;
+  // LatLng _petCurrent_Location = const LatLng(6.8440, 80.0029);
   bool isDeviceConnected = false;
   String _batteryLife = '6%';
 
@@ -61,6 +66,8 @@ class _PetDetailsState extends State<PetDetails> {
 
     // Subscribe to MQTT live data stream
     selectedPet = widget.deviceId;
+    // initialize current pet location from the passed safe zone coordinates
+    _petCurrent_Location = widget.safeZoneCoordinates;
     _subscription = mqttHelper.connectAndListen(selectedPet).listen((data) {
       setState(() {
         deviceData = data;
@@ -269,7 +276,7 @@ class _PetDetailsState extends State<PetDetails> {
                             isPetInSafeZone
                                 ? 'In Safe Zone 🏠'
                                 : 'Out of Safe Zone ⚠️',
-                                // 'Have $_distanceFromSafeZone km From Safe Zone ⚠️',
+                            // 'Have $_distanceFromSafeZone km From Safe Zone ⚠️',
                             style: TextStyle(
                               color: isPetInSafeZone
                                   ? Colors.green

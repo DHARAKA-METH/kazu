@@ -283,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                     child: PetCard(
                       name: pet['name'],
                       deviceId: pet['deviceId'],
-                      isInsideSafeZone: pet['isInsideSafeZone'],
+                      
 
                       // imagePath: pet['image'], // optional
                     ),
