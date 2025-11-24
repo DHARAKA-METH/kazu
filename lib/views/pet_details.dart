@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kazu/constants/app_colors.dart';
 import 'package:kazu/controllers/pet_controller.dart';
+import 'package:kazu/models/pet_model.dart';
 import 'package:kazu/services/pet_services.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/home_page.dart';
@@ -31,6 +32,8 @@ class PetDetails extends StatefulWidget {
 }
 
 class _PetDetailsState extends State<PetDetails> {
+  PetService _petService = PetService();
+  RealtimePetService _realtimePetService = RealtimePetService();
   int _selectedIndex = 2;
   Timer? _timer;
   final RealtimePetService _service = RealtimePetService();
@@ -174,7 +177,7 @@ class _PetDetailsState extends State<PetDetails> {
       strokeWidth: 2,
     );
 
-     _safeZoneMarker = Marker(
+    _safeZoneMarker = Marker(
       markerId: const MarkerId('SafeZone'),
       position: _safeZoneLocation,
       infoWindow: const InfoWindow(title: 'Safe Zone 🏠'),
@@ -313,9 +316,7 @@ class _PetDetailsState extends State<PetDetails> {
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const SafeZoneSelector(),
-                      ),
+                      MaterialPageRoute(builder: (_) => SafeZoneSelector()),
                     );
                     if (result != null) {
                       setState(() {
@@ -325,6 +326,18 @@ class _PetDetailsState extends State<PetDetails> {
                         );
                         _safeZoneRadius = result['radius'];
                         _updateSafeZoneCircle();
+                        _petService.updateSafeZoneToDb(
+                          deviceId: widget.deviceId,
+                          latitude: result['latitude'],
+                          longitude: result['longitude'],
+                          radius: result['radius'],
+                        );
+                        _realtimePetService.updateSafeZoneToRealtimeDB(
+                          deviceId: widget.deviceId,
+                          latitude: result['latitude'],
+                          longitude: result['longitude'],
+                          radius: result['radius'],
+                        );
                       });
                     }
                   },

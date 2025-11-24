@@ -26,6 +26,25 @@ class PetService {
       return [];
     }
   }
+
+  // update safezone to db
+  Future<void> updateSafeZoneToDb({
+    required String deviceId,
+    required double latitude,
+    required double longitude,
+    required double radius,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('pets').doc(deviceId).set({
+        "safeZoneLocation": GeoPoint(latitude, longitude),
+        "safeZoneRadius": radius,
+        "updatedAt": DateTime.now(),
+      }, SetOptions(merge: true));
+      print('✅ Safe zone updated in DB for deviceId $deviceId');
+    } catch (e) {
+      print('❌ Error updating safe zone: $e');
+    }
+  }
 }
 
 class RealtimePetService {
@@ -47,6 +66,25 @@ class RealtimePetService {
     } catch (e) {
       print('❌ Error fetching pet live data: $e');
       return null;
+    }
+  }
+
+  // update safe zone to realtime db
+  Future<void> updateSafeZoneToRealtimeDB({
+    required String deviceId,
+    required double latitude,
+    required double longitude,
+    required double radius,
+  }) async {
+    try {
+      await FirebaseDatabase.instance.ref("pets_live/$deviceId").update({
+        'safeZoneLocation': {'lat': latitude, 'lon': longitude},
+        'safeZoneRadius': radius,
+        'updatedAt': DateTime.now().toString(),
+      });
+      print('✅ Safe zone updated in Realtime DB for deviceId $deviceId');
+    } catch (e) {
+      print('❌ Error updating safe zone in Realtime DB: $e');
     }
   }
 }
