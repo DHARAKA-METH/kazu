@@ -6,6 +6,7 @@ import 'package:kazu/controllers/pet_controller.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/components/pet_card.dart';
 import 'package:kazu/views/pet_register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,7 +16,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final String userName = "Dharaka";
+  User? user = FirebaseAuth.instance.currentUser;
+  late String userName;
   final String notificationCount = "4";
   int _selectedIndex = 0;
   List<Map<String, dynamic>> pets = [];
@@ -24,6 +26,21 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
+    // Initialize derived fields that depend on instance members
+    userName =
+        RegExp(r'^([^@]+)').firstMatch(user?.email ?? 'User')?.group(1) ??
+        'User';
+
+    if (user != null) {
+      String uid = user!.uid; // The unique ID of the logged-in user
+      String? email = user!.email; // Optional: get email
+      print('Current user UID -------------------------: $uid');
+      print('Email: $email');
+    } else {
+      print('No user is currently signed in');
+    }
+
     _loadPets();
 
     _timer = Timer.periodic(Duration(minutes: 1), (timer) {
@@ -32,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadPets() async {
-    final petData = await getPetDetails();
+    final petData = await getPetDetails(user!.uid);
     setState(() {
       pets = petData;
     });
@@ -283,7 +300,6 @@ class _HomePageState extends State<HomePage> {
                     child: PetCard(
                       name: pet['name'],
                       deviceId: pet['deviceId'],
-                      
 
                       // imagePath: pet['image'], // optional
                     ),

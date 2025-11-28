@@ -1,16 +1,18 @@
 import 'dart:async';
-
 import 'package:kazu/models/pet_model.dart';
 import 'package:kazu/services/pet_services.dart';
 
 final PetService _petService = PetService();
 
 /// Fetch all pets and return as a list of maps suitable for UI
-Future<List<Map<String, dynamic>>> getPetDetails() async {
+Future<List<Map<String, dynamic>>> getPetDetails(String uId) async {
   List<Pet> pets = await _petService.fetchAllPets();
 
+  // Filter pets that belong to the current user
+  List<Pet> userPets = pets.where((pet) => pet.userId == uId).toList();
+
   // Convert each Pet object into a Map<String, dynamic>
-  List<Map<String, dynamic>> petDetails = pets.map((pet) {
+  List<Map<String, dynamic>> petDetails = userPets.map((pet) {
     return {
       'deviceId': pet.deviceId,
       'userId': pet.userId,
