@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kazu/constants/app_colors.dart';
 import 'package:kazu/controllers/pet_controller.dart';
-import 'package:kazu/models/pet_model.dart';
 import 'package:kazu/services/pet_services.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/home_page.dart';

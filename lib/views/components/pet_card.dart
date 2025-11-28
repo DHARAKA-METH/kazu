@@ -18,10 +18,10 @@ class PetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    RealtimePetService _realtimePetService = RealtimePetService();
+    RealtimePetService realtimePetService = RealtimePetService();
 
     return FutureBuilder<Map<String, dynamic>?>(
-      future: _realtimePetService.fetchPetLive(deviceId),
+      future: realtimePetService.fetchPetLive(deviceId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
