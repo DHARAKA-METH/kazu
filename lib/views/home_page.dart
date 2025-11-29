@@ -48,8 +48,15 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _loadPets() async {
     final petData = await getPetDetails(user!.uid);
+    if (!mounted) return;
     setState(() {
       pets = petData;
     });
@@ -251,10 +258,16 @@ class _HomePageState extends State<HomePage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
+                    final result = Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => PetRegister()),
+                      MaterialPageRoute(
+                        builder: (context) => PetRegister(userId: user!.uid),
+                      ),
                     );
+                    if (result == true) {
+                      _loadPets();
+                      setState(() {});
+                    }
                   },
                   child: Container(
                     width: 40,

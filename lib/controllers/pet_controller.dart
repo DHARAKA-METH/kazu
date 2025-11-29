@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kazu/models/pet_model.dart';
 import 'package:kazu/services/pet_services.dart';
 
 final PetService _petService = PetService();
+final RealtimePetService _realtimePetService = RealtimePetService();
 
 /// Fetch all pets and return as a list of maps suitable for UI
 Future<List<Map<String, dynamic>>> getPetDetails(String uId) async {
@@ -32,6 +34,48 @@ Future<List<Map<String, dynamic>>> getPetDetails(String uId) async {
 
   print('✅ Fetched ${petDetails.length} pets from DB');
   return petDetails;
+}
+
+// Register pet
+Future<void> addNewPet(
+  String userId,
+  String deviceId,
+  String petName,
+  String petAge,
+  String petType,
+  Gender,
+  LatLng safeZoneLocation,
+  double safeZoneRadius,
+) async {
+  Pet newPet = Pet(
+    deviceId: deviceId,
+    userId: userId,
+    name: petName,
+    species: "",
+    breed: "",
+    age: double.tryParse(petAge) ?? 0.0,
+    safeZoneLocation: safeZoneLocation, // LatLng from Google Maps
+    safeZoneRadius: safeZoneRadius,
+    lastLocation: LatLng(0.0, 0.0),
+    totalWalkDistance: 0.0,
+    isInsideSafeZone: true,
+    dailyDistanceHistory: {},
+    createdAt: DateTime.now(),
+  );
+
+  try {
+    await _petService.registerPet(newPet);
+    await _realtimePetService.updateSafeZoneToRealtimeDB(
+      deviceId: deviceId,
+      latitude: safeZoneLocation.latitude,
+      longitude: safeZoneLocation.longitude,
+      radius: safeZoneRadius,
+    );
+
+    print('✅ Pet successfully registered to firestore and realtime DB!');
+  } catch (e) {
+    print('❌ Error registering pet: $e');
+  }
 }
 
 /// Fetch live data form MQTT

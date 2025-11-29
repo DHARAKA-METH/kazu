@@ -45,6 +45,21 @@ class PetService {
       print('❌ Error updating safe zone: $e');
     }
   }
+
+  // register pet
+  Future<bool> registerPet(Pet pet) async {
+    try {
+      await _db.collection('pets').doc(pet.deviceId).set(pet.toMap());
+      // await _db.collection('users').doc(pet.userId).update({
+      //   'pets': FieldValue.arrayUnion([pet.deviceId]),
+      // });
+      print('✅ Pet successfully registered!');
+      return true;
+    } catch (e) {
+      print('❌ Error registering pet: $e');
+      return false;
+    }
+  }
 }
 
 class RealtimePetService {
@@ -80,6 +95,10 @@ class RealtimePetService {
       await FirebaseDatabase.instance.ref("pets_live/$deviceId").update({
         'safeZoneLocation': {'lat': latitude, 'lon': longitude},
         'safeZoneRadius': radius,
+        'isConnected':false,
+        'isInSafeZone': true,
+        'isPetSleep':false,
+        'signalStrength':0,
         'updatedAt': DateTime.now().toString(),
       });
       print('✅ Safe zone updated in Realtime DB for deviceId $deviceId');

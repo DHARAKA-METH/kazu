@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kazu/constants/app_colors.dart';
+import 'package:kazu/controllers/pet_controller.dart';
 import 'safe_zone_selector.dart';
 
 class PetRegister extends StatefulWidget {
-  const PetRegister({super.key});
+  final String userId;
+  const PetRegister({super.key, required this.userId});
 
   @override
   State<PetRegister> createState() => _PetRegisterState();
@@ -170,7 +172,7 @@ class _PetRegisterState extends State<PetRegister> {
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       if (_safeZoneLocation == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -180,14 +182,25 @@ class _PetRegisterState extends State<PetRegister> {
                         );
                         return;
                       }
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Pet Registered: ${_petNameController.text} ($_gender), Safe Zone set :$_safeZoneLocation with $_safeZoneRadius Raduis',
-                          ),
-                        ),
-                      );
+                      try {
+                        await addNewPet(
+                          widget.userId,
+                          _deviceIdController.text,
+                          _petNameController.text,
+                          _ageController.text,
+                          _petTypeController.text,
+                          _gender,
+                          _safeZoneLocation!,
+                          _safeZoneRadius!,
+                        );
+                        print('Pet successfully registered!!!');
+                        Navigator.pop(context,true);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error registering pet: $e')),
+                        );
+                        return;
+                      }
                     }
                   },
                   child: const Text(
