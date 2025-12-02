@@ -111,11 +111,16 @@ class RealtimePetService {
   Future<void> updateAlertMessageToRealtimeDB(
     String deviceId,
     Map<String, dynamic> message,
+    int notificationCount,
   ) async {
+    int newNotificationCount = notificationCount + 1;
     try {
       await FirebaseDatabase.instance.ref("alert/$deviceId/").push().set({
         'message': message["message"],
         'createdAt': DateTime.now().toString(),
+      });
+      await FirebaseDatabase.instance.ref("alert").update({
+        'notificationCount': newNotificationCount,
       });
     } catch (e) {
       print('❌ Error updating Alert Message in Realtime DB: $e');

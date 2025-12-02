@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   RealtimePetService realtimePetService = RealtimePetService();
   User? user = FirebaseAuth.instance.currentUser;
   late String userName;
-  final String notificationCount = "4";
+  late int notificationCount = 2;
   int _selectedIndex = 0;
   List<Map<String, dynamic>> pets = [];
   Timer? _timer;
@@ -37,6 +37,8 @@ class _HomePageState extends State<HomePage> {
       realtimePetService.fetchNotificationFromRealtimeDB().then((data) {
         setState(() {
           notifications = data ?? {};
+          notificationCount = notifications['notificationCount'] ?? 0;
+
         });
       });
     }
@@ -47,12 +49,13 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         alerts = alertsData;
         _loadNotification();
+
         print(
-          'notifications %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%: $notifications',
+          'notifications : $notifications',
         );
 
         // print(
-        //   'Alerts %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%: $alerts',
+        //   'Alerts : $alerts',
         // );
       });
     });
@@ -259,7 +262,7 @@ class _HomePageState extends State<HomePage> {
                             border: Border.all(color: Colors.white, width: 1.5),
                           ),
                           child: Text(
-                            notificationCount,
+                            notificationCount.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -342,6 +345,7 @@ class _HomePageState extends State<HomePage> {
                   realtimePetService.updateAlertMessageToRealtimeDB(
                     pet['deviceId'],
                     alerts,
+                    notificationCount,
                   );
                   return Padding(
                     padding: const EdgeInsets.only(
