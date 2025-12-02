@@ -106,6 +106,39 @@ class RealtimePetService {
       print('❌ Error updating safe zone in Realtime DB: $e');
     }
   }
+
+  // update Alert Message
+  Future<void> updateAlertMessageToRealtimeDB(
+    String deviceId,
+    Map<String, dynamic> message,
+  ) async {
+    try {
+      await FirebaseDatabase.instance.ref("alert/$deviceId/").push().set({
+        'message': message["message"],
+        'createdAt': DateTime.now().toString(),
+      });
+    } catch (e) {
+      print('❌ Error updating Alert Message in Realtime DB: $e');
+    }
+  }
+
+  // Fetch notificaton from realtime db
+  Future<Map<String, dynamic>?> fetchNotificationFromRealtimeDB() async {
+    try {
+      final snapshot = await _db.child('alert').get();
+      if (snapshot.exists) {
+        final data = Map<String, dynamic>.from(snapshot.value as Map);
+        print('✅ Notification data fetched');
+        return data;
+      } else {
+        print('⚠️ No Notification data found');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Error fetching Notification data: $e');
+      return null;
+    }
+  }
 }
 
 // MQTT Service for real-time communication

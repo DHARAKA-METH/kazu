@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:kazu/constants/app_colors.dart';
 import 'package:kazu/controllers/pet_controller.dart';
+import 'package:kazu/services/pet_services.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/components/pet_card.dart';
 import 'package:kazu/views/pet_register.dart';
@@ -16,6 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  RealtimePetService realtimePetService = RealtimePetService();
   User? user = FirebaseAuth.instance.currentUser;
   late String userName;
   final String notificationCount = "4";
@@ -24,20 +26,34 @@ class _HomePageState extends State<HomePage> {
   Timer? _timer;
   List<String> deviceIds = [];
   Map<String, dynamic> alerts = {};
+  Map<String, dynamic> notifications = {};
 
   @override
   void initState() {
     super.initState();
 
     MqttHelper mqttHelper = MqttHelper();
+    void _loadNotification() {
+      realtimePetService.fetchNotificationFromRealtimeDB().then((data) {
+        setState(() {
+          notifications = data ?? {};
+        });
+      });
+    }
+
     mqttHelper.connectAndListenMultipleDevicesForAlertService(deviceIds).listen((
       alertsData,
     ) {
       setState(() {
         alerts = alertsData;
+        _loadNotification();
         print(
-          'Alerts %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%: $alerts',
+          'notifications %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%: $notifications',
         );
+
+        // print(
+        //   'Alerts %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%: $alerts',
+        // );
       });
     });
 
@@ -56,6 +72,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     _loadPets();
+    _loadNotification();
 
     _timer = Timer.periodic(Duration(minutes: 1), (timer) {
       _loadPets();
@@ -100,7 +117,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // 🔔 Show notification panel
-  void _showNotificationPanel() {
+  void _showNotificationPanel() async {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -157,6 +174,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    RealtimePetService realtimePetService = RealtimePetService();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -321,6 +339,10 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 children: pets.map((pet) {
                   deviceIds.add(pet['deviceId']);
+                  realtimePetService.updateAlertMessageToRealtimeDB(
+                    pet['deviceId'],
+                    alerts,
+                  );
                   return Padding(
                     padding: const EdgeInsets.only(
                       right: 12,

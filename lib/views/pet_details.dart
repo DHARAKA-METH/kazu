@@ -175,9 +175,9 @@ class _PetDetailsState extends State<PetDetails> {
     if (await canLaunchUrl(googleMapUrl)) {
       await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot open Google Maps')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cannot open Google Maps')));
     }
   }
 
