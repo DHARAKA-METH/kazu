@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> pets = [];
   Timer? _timer;
   List<String> deviceIds = [];
-  Map<String, dynamic> alerts = {};
+  Map<String, dynamic> fetcheNotificationsByMqtt = {};
   Map<String, dynamic> notifications = {};
 
   @override
@@ -38,27 +38,24 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           notifications = data ?? {};
           notificationCount = notifications['notificationCount'] ?? 0;
-
         });
       });
     }
 
-    mqttHelper.connectAndListenMultipleDevicesForAlertService(deviceIds).listen((
-      alertsData,
-    ) {
-      setState(() {
-        alerts = alertsData;
-        _loadNotification();
+    mqttHelper.connectAndListenMultipleDevicesForAlertService(deviceIds).listen(
+      (alertsData) {
+        setState(() {
+          fetcheNotificationsByMqtt = alertsData;
+          _loadNotification();
 
-        print(
-          'notifications : $notifications',
-        );
+          print('notifications : $notifications');
 
-        // print(
-        //   'Alerts : $alerts',
-        // );
-      });
-    });
+          // print(
+          //   'Alerts : $alerts',
+          // );
+        });
+      },
+    );
 
     // Initialize derived fields that depend on instance members
     userName =
@@ -344,7 +341,7 @@ class _HomePageState extends State<HomePage> {
                   deviceIds.add(pet['deviceId']);
                   realtimePetService.updateAlertMessageToRealtimeDB(
                     pet['deviceId'],
-                    alerts,
+                    fetcheNotificationsByMqtt,
                     notificationCount,
                   );
                   return Padding(
