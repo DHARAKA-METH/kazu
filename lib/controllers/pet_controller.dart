@@ -108,4 +108,19 @@ class MqttHelper {
 
     return controller.stream;
   }
+
+  Stream<Map<String, dynamic>> connectAndListenMultipleDevicesForAlertService(
+    List<String> devices,
+  ) {
+    StreamController<Map<String, dynamic>> controller = StreamController();
+
+    mqttService.connect().then((_) {
+      mqttService.subscribeDevicesForAlertService(devices);
+
+      mqttService.onDeviceUpdate = (alerts) {
+        controller.add(alerts);
+      };
+    });
+    return controller.stream;
+  }
 }

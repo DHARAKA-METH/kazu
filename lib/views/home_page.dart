@@ -22,10 +22,24 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   List<Map<String, dynamic>> pets = [];
   Timer? _timer;
+  List<String> deviceIds = [];
+  Map<String, dynamic> alerts = {};
 
   @override
   void initState() {
     super.initState();
+
+    MqttHelper mqttHelper = MqttHelper();
+    mqttHelper.connectAndListenMultipleDevicesForAlertService(deviceIds).listen((
+      alertsData,
+    ) {
+      setState(() {
+        alerts = alertsData;
+        print(
+          'Alerts %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%: $alerts',
+        );
+      });
+    });
 
     // Initialize derived fields that depend on instance members
     userName =
@@ -306,6 +320,7 @@ class _HomePageState extends State<HomePage> {
               ), // outer padding
               child: Row(
                 children: pets.map((pet) {
+                  deviceIds.add(pet['deviceId']);
                   return Padding(
                     padding: const EdgeInsets.only(
                       right: 12,

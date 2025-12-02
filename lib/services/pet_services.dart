@@ -95,10 +95,10 @@ class RealtimePetService {
       await FirebaseDatabase.instance.ref("pets_live/$deviceId").update({
         'safeZoneLocation': {'lat': latitude, 'lon': longitude},
         'safeZoneRadius': radius,
-        'isConnected':false,
+        'isConnected': false,
         'isInSafeZone': true,
-        'isPetSleep':false,
-        'signalStrength':0,
+        'isPetSleep': false,
+        'signalStrength': 0,
         'updatedAt': DateTime.now().toString(),
       });
       print('✅ Safe zone updated in Realtime DB for deviceId $deviceId');
@@ -159,11 +159,21 @@ class MqttService {
       client.unsubscribe('pets_live/$currentDeviceId/data');
       print('Unsubscribed from $currentDeviceId');
     }
-
     // Subscribe new device
     currentDeviceId = deviceId;
     client.subscribe('pets_live/$deviceId/data', MqttQos.atMostOnce);
     print('Subscribed to $deviceId');
+  }
+
+  void subscribeDevicesForAlertService(List<String> devices) {
+    if (currentDeviceId.isNotEmpty) {
+      client.unsubscribe('pets_live/$currentDeviceId/alert');
+      print('Unsubscribed from $currentDeviceId');
+    }
+    for (var device in devices) {
+      client.subscribe('pets_live/$device/alert', MqttQos.atMostOnce);
+      print('Subscribed to $device');
+    }
   }
 
   // Send command to device
