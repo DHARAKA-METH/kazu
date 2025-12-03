@@ -118,6 +118,10 @@ class _HomePageState extends State<HomePage> {
 
   // 🔔 Show notification panel
   void _showNotificationPanel() async {
+    List<Map<String, dynamic>> filterednotifications =
+        await getFilteredMessages(notifications);
+
+    await realtimePetService.UpdateNotificationCountTo0InRealtimeDB();
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -142,9 +146,11 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 8),
-              _buildNotificationItem('Your pet left the safe zone!'),
-              _buildNotificationItem('New reminder: Vet visit tomorrow.'),
-              _buildNotificationItem('Feeding time in 10 minutes.'),
+              // Notification items
+              if (filterednotifications.isNotEmpty)
+                ...filterednotifications.map((notification) {
+                  return _buildNotificationItem(notification['message']);
+                }),
             ],
           ),
         ),

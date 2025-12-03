@@ -108,39 +108,39 @@ class RealtimePetService {
   }
 
   // update Alert Message
-Future<void> updateAlertMessageToRealtimeDB(
-  String deviceId,
-  Map<String, dynamic> message,
-  int notificationCount,
-) async {
-  try {
-    // Generate a timestamp-based key
-    final now = DateTime.now();
-    final formattedDate = "${now.year}${now.month.toString().padLeft(2, '0')}"
-        "${now.day.toString().padLeft(2, '0')}_"
-        "${now.hour.toString().padLeft(2, '0')}"
-        "${now.minute.toString().padLeft(2, '0')}"
-        "${now.second.toString().padLeft(2, '0')}";
+  Future<void> updateAlertMessageToRealtimeDB(
+    String deviceId,
+    Map<String, dynamic> message,
+    int notificationCount,
+  ) async {
+    try {
+      // Generate a timestamp-based key
+      final now = DateTime.now();
+      final formattedDate =
+          "${now.year}${now.month.toString().padLeft(2, '0')}"
+          "${now.day.toString().padLeft(2, '0')}_"
+          "${now.hour.toString().padLeft(2, '0')}"
+          "${now.minute.toString().padLeft(2, '0')}"
+          "${now.second.toString().padLeft(2, '0')}";
 
-    // Save the alert message
-    await FirebaseDatabase.instance
-        .ref("alert/$deviceId/$formattedDate")
-        .set({
-      'message': message["message"] ?? "",
-      'createdAt': now.toIso8601String(),
-    });
+      // Save the alert message
+      await FirebaseDatabase.instance.ref("alert/$deviceId/$formattedDate").set(
+        {
+          'message': message["message"] ?? "",
+          'createdAt': now.toIso8601String(),
+        },
+      );
 
-    // Update the notification count for this device
-    await FirebaseDatabase.instance
-        .ref("alert/notificationCount")
-        .set(notificationCount + 1);
+      // Update the notification count for this device
+      await FirebaseDatabase.instance
+          .ref("alert/notificationCount")
+          .set(notificationCount + 1);
 
-    print('✅ Alert saved for $deviceId at $formattedDate');
-  } catch (e) {
-    print('❌ Error updating Alert Message in Realtime DB: $e');
+      print('✅ Alert saved for $deviceId at $formattedDate');
+    } catch (e) {
+      print('❌ Error updating Alert Message in Realtime DB: $e');
+    }
   }
-}
-
 
   // Fetch notificaton from realtime db
   Future<Map<String, dynamic>?> fetchNotificationFromRealtimeDB() async {
@@ -157,6 +157,18 @@ Future<void> updateAlertMessageToRealtimeDB(
     } catch (e) {
       print('❌ Error fetching Notification data: $e');
       return null;
+    }
+  }
+
+  // update notification count 0
+  // update notification count
+  Future<void> UpdateNotificationCountTo0InRealtimeDB() async {
+    try {
+      await FirebaseDatabase.instance.ref("alert").update({
+        'notificationCount': 0,
+      });
+    } catch (e) {
+      print("Failed Update notificationCount :$e");
     }
   }
 }

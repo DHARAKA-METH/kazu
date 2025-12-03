@@ -124,3 +124,38 @@ class MqttHelper {
     return controller.stream;
   }
 }
+
+List<Map<String, dynamic>> getFilteredMessages(Map<String, dynamic> data) {
+  List<Map<String, dynamic>> allMessages = [];
+  data.forEach((key, value) {
+    // Skip notification counter
+    if (key == "notificationCount") return;
+
+    // Cast value to Map<String, dynamic>
+    if (value is Map) {
+      final deviceMap = Map<String, dynamic>.from(value);
+      deviceMap.forEach((msgId, msgData) {
+        // Cast msgData to Map<String, dynamic>
+        if (msgData is Map) {
+          final msgMap = Map<String, dynamic>.from(msgData);
+          final createdAtStr = msgMap["createdAt"]?.toString();
+          if (createdAtStr == null) return;
+          allMessages.add({
+            "deviceId": key,
+            "messageId": msgId,
+            "createdAt": DateTime.parse(createdAtStr.replaceFirst(' ', 'T')),
+            "message": msgMap["message"] ?? "",
+          });
+        }
+      });
+    } else {
+      print("value is not a Map<String, dynamic> - ${value.runtimeType}");
+    }
+  });
+
+  // Sort by createdAt descending
+  allMessages.sort((a, b) => b["createdAt"].compareTo(a["createdAt"]));
+
+  // Return latest 10 messages
+  return allMessages.take(10).toList();
+}
