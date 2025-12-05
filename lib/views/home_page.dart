@@ -9,6 +9,7 @@ import 'package:kazu/views/components/pet_card.dart';
 import 'package:kazu/views/components/reminder_cart.dart';
 import 'package:kazu/views/pet_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,6 +35,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     MqttHelper mqttHelper = MqttHelper();
+
     void _loadNotification() {
       realtimePetService.fetchNotificationFromRealtimeDB().then((data) {
         setState(() {
@@ -48,26 +50,18 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           fetcheNotificationsByMqtt = alertsData;
           _loadNotification();
-
           print('notifications : $notifications');
-
-          // print(
-          //   'Alerts : $alerts',
-          // );
         });
       },
     );
 
-    // Initialize derived fields that depend on instance members
     userName =
         RegExp(r'^([^@]+)').firstMatch(user?.email ?? 'User')?.group(1) ??
         'User';
 
     if (user != null) {
-      String uid = user!.uid; // The unique ID of the logged-in user
-      String? email = user!.email; // Optional: get email
-      print('Current user UID -------------------------: $uid');
-      print('Email: $email');
+      print('Current user UID: ${user!.uid}');
+      print('Email: ${user!.email}');
     } else {
       print('No user is currently signed in');
     }
@@ -75,7 +69,7 @@ class _HomePageState extends State<HomePage> {
     _loadPets();
     _loadNotification();
 
-    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _loadPets();
     });
   }
@@ -95,29 +89,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onTabTapped(int index) {
-    if (index == _selectedIndex) {}
-
     setState(() {
       _selectedIndex = index;
     });
 
     if (index != 0) {
-      // Navigate to profile page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     }
-    // if (index == 1 ) {
-    //   // Navigate to profile page
-    //  Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (_) => const ProfilePage()),
-    //   );
-    // }
   }
 
-  // 🔔 Show notification panel
   void _showNotificationPanel() async {
     List<Map<String, dynamic>> filterednotifications =
         await getFilteredMessages(notifications);
@@ -147,7 +130,6 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 8),
-              // Notification items
               if (filterednotifications.isNotEmpty)
                 ...filterednotifications.map((notification) {
                   return _buildNotificationItem(notification['message']);
@@ -159,7 +141,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Notification item builder
   static Widget _buildNotificationItem(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -182,6 +163,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     RealtimePetService realtimePetService = RealtimePetService();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -189,7 +171,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Top Bar ---
+            // Top Bar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -254,7 +236,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      // Badge
                       Positioned(
                         top: -2,
                         right: -2,
@@ -283,7 +264,7 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 40),
 
-            // --- Section Header ---
+            // Section Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -296,8 +277,8 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    final result = Navigator.push(
+                  onTap: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => PetRegister(userId: user!.uid),
@@ -336,13 +317,10 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 20),
 
-            // --- Pet Cards List ---
+            // Pet Cards
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 0,
-                vertical: 8,
-              ), // outer padding
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: pets.map((pet) {
                   deviceIds.add(pet['deviceId']);
@@ -352,36 +330,132 @@ class _HomePageState extends State<HomePage> {
                     notificationCount,
                   );
                   return Padding(
-                    padding: const EdgeInsets.only(
-                      right: 12,
-                    ), // space between cards
+                    padding: const EdgeInsets.only(right: 12),
                     child: PetCard(
                       name: pet['name'],
                       deviceId: pet['deviceId'],
-
-                      // imagePath: pet['image'], // optional
                     ),
                   );
                 }).toList(),
               ),
             ),
+
             const SizedBox(height: 20),
 
-            // --- Reminder Cards List ---
+            // Reminder Cards
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 8,
-              ), // outer padding
-              child: Row(children: [ReminderCart()]),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(children: const [ReminderCart()]),
             ),
+
+            const SizedBox(height: 20),
+
+            // --- Chart Analysis Section ---
+            // --- Chart Analysis Section ---
+            const Text(
+              'Pet Activity Overview',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: pets.map((pet) {
+                  // Example distance walked data over 5 days
+                  List<ChartData> distanceData = [
+                    ChartData('Mon', pet['distanceWalkedDay1'] ?? 2),
+                    ChartData('Tue', pet['distanceWalkedDay2'] ?? 3),
+                    ChartData('Wed', pet['distanceWalkedDay3'] ?? 2.5),
+                    ChartData('Thu', pet['distanceWalkedDay4'] ?? 4),
+                    ChartData('Fri', pet['distanceWalkedDay5'] ?? 3.5),
+                  ];
+
+                  double activityLevel = pet['activityLevel'] ?? 0.7;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Column(
+                      children: [
+                        // Distance Walked Line Chart
+                        SizedBox(
+                          width: 250,
+                          height: 200,
+                          child: SfCartesianChart(
+                            title: ChartTitle(text: '${pet['name']} Distance'),
+                            primaryXAxis: CategoryAxis(),
+                            primaryYAxis: NumericAxis(
+                              minimum: 0,
+                              maximum: 10,
+                              interval: 2,
+                              title: AxisTitle(text: 'Distance (km)'),
+                            ),
+                            series: <CartesianSeries<ChartData, String>>[
+                              LineSeries<ChartData, String>(
+                                dataSource: distanceData,
+                                xValueMapper: (ChartData data, _) => data.label,
+                                yValueMapper: (ChartData data, _) => data.value,
+                                color: Colors.blueAccent,
+                                markerSettings: const MarkerSettings(
+                                  isVisible: true,
+                                ),
+                                dataLabelSettings: const DataLabelSettings(
+                                  isVisible: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Activity Level Donut Chart
+                        SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: SfCircularChart(
+                            series: <CircularSeries<ChartData, String>>[
+                              DoughnutSeries<ChartData, String>(
+                                dataSource: [
+                                  ChartData('Active', activityLevel * 100),
+                                  ChartData(
+                                    'Remaining',
+                                    100 - (activityLevel * 100),
+                                  ),
+                                ],
+                                xValueMapper: (ChartData data, _) => data.label,
+                                yValueMapper: (ChartData data, _) => data.value,
+                                pointColorMapper: (ChartData data, _) =>
+                                    data.label == 'Active'
+                                    ? Colors.greenAccent
+                                    : Colors.grey[300],
+                                dataLabelSettings: const DataLabelSettings(
+                                  isVisible: true,
+                                  labelPosition: ChartDataLabelPosition.inside,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
-      // Footer bar ----
+
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.only(bottom: 15),
         child: AppFooter(
           currentIndex: _selectedIndex,
           onTabTapped: _onTabTapped,
@@ -389,4 +463,11 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+// --- Helper Data Class ---
+class ChartData {
+  final String label;
+  final double value;
+  ChartData(this.label, this.value);
 }
