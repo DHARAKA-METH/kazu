@@ -100,7 +100,9 @@ class _HomePageState extends State<HomePage> {
     if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => ProfilePage(pets:pets,username: userName,)),
+        MaterialPageRoute(
+          builder: (_) => ProfilePage(pets: pets, username: userName),
+        ),
       );
     }
     if (index == 2) {
@@ -426,16 +428,22 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 12),
 
                         // Activity Level Donut Chart
+                        // --- Interactive Activity Level Pie Chart ---
+                        Text('${pet['name']} Activity Level'),
                         SizedBox(
-                          width: 120,
-                          height: 120,
+                          width: 150,
+                          height: 150,
                           child: SfCircularChart(
+                            tooltipBehavior: TooltipBehavior(
+                              enable: true,
+                              format: 'point.x : point.y%',
+                            ),
                             series: <CircularSeries<ChartData, String>>[
                               DoughnutSeries<ChartData, String>(
                                 dataSource: [
                                   ChartData('Active', activityLevel * 100),
                                   ChartData(
-                                    'Remaining',
+                                    'Resting',
                                     100 - (activityLevel * 100),
                                   ),
                                 ],
@@ -445,9 +453,22 @@ class _HomePageState extends State<HomePage> {
                                     data.label == 'Active'
                                     ? Colors.greenAccent
                                     : Colors.grey[300],
+                                explode: true,
+                                explodeIndex: 0, // explode the 'Active' segment
+                                enableTooltip: true,
+                                selectionBehavior: SelectionBehavior(
+                                  enable: true,
+                                  toggleSelection: true,
+                                  selectedColor:
+                                      Colors.orangeAccent, // when selected
+                                ),
                                 dataLabelSettings: const DataLabelSettings(
                                   isVisible: true,
                                   labelPosition: ChartDataLabelPosition.inside,
+                                  textStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ],
