@@ -60,6 +60,18 @@ class PetService {
       return false;
     }
   }
+
+  // update user devices
+
+  Future<void> updateUserDevices(String userId, String deviceId) async {
+    try {
+      await _db.collection('users').doc(userId).update({
+        'devices': FieldValue.arrayUnion([deviceId]),
+      });
+    } catch (e) {
+      print('❌ Error updating user devices: $e');
+    }
+  }
 }
 
 class RealtimePetService {

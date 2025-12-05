@@ -65,6 +65,7 @@ Future<void> addNewPet(
 
   try {
     await _petService.registerPet(newPet);
+    await _petService.updateUserDevices(userId, deviceId);
     await _realtimePetService.updateSafeZoneToRealtimeDB(
       deviceId: deviceId,
       latitude: safeZoneLocation.latitude,
