@@ -9,6 +9,7 @@ import 'package:kazu/views/components/pet_card.dart';
 import 'package:kazu/views/components/reminder_cart.dart';
 import 'package:kazu/views/pet_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kazu/views/profile_page.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class HomePage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
 
     void _loadNotification() {
       realtimePetService.fetchNotificationFromRealtimeDB().then((data) {
+        if (!mounted) return;
         setState(() {
           notifications = data ?? {};
           notificationCount = notifications['notificationCount'] ?? 0;
@@ -47,6 +49,7 @@ class _HomePageState extends State<HomePage> {
 
     mqttHelper.connectAndListenMultipleDevicesForAlertService(deviceIds).listen(
       (alertsData) {
+        if (!mounted) return;
         setState(() {
           fetcheNotificationsByMqtt = alertsData;
           _loadNotification();
@@ -89,11 +92,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onTabTapped(int index) {
+    if (!mounted) return;
     setState(() {
       _selectedIndex = index;
     });
 
-    if (index != 0) {
+    if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => ProfilePage(pets:pets,username: userName,)),
+      );
+    }
+    if (index == 2) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
@@ -285,6 +295,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                     if (result == true) {
+                      if (!mounted) return;
                       _loadPets();
                       setState(() {});
                     }
