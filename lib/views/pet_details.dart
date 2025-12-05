@@ -123,7 +123,7 @@ class _PetDetailsState extends State<PetDetails> {
   Future<void> _setCustomMarker() async {
     final BitmapDescriptor customIcon = await BitmapDescriptor.fromAssetImage(
       const ImageConfiguration(size: Size(64, 64)),
-      'assets/images/petMarker.png',
+      'assets/images/petMarker2.png',
     );
 
     setState(() {
