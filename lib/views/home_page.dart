@@ -6,6 +6,7 @@ import 'package:kazu/controllers/pet_controller.dart';
 import 'package:kazu/services/pet_services.dart';
 import 'package:kazu/views/components/app_footer.dart';
 import 'package:kazu/views/components/pet_card.dart';
+import 'package:kazu/views/components/reminder_cart.dart';
 import 'package:kazu/views/pet_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -363,6 +364,17 @@ class _HomePageState extends State<HomePage> {
                   );
                 }).toList(),
               ),
+            ),
+            const SizedBox(height: 20),
+
+            // --- Reminder Cards List ---
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 8,
+              ), // outer padding
+              child: Row(children: [ReminderCart()]),
             ),
           ],
         ),

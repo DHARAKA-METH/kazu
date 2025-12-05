@@ -41,7 +41,7 @@ class PetService {
         "updatedAt": DateTime.now(),
       }, SetOptions(merge: true));
       print('✅ Safe zone updated in DB for deviceId $deviceId');
-    } catch (e) {
+    } catch (e) { 
       print('❌ Error updating safe zone: $e');
     }
   }
