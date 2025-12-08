@@ -143,9 +143,15 @@ class _HomePageState extends State<HomePage> {
               const Divider(),
               const SizedBox(height: 8),
               if (filterednotifications.isNotEmpty)
-                ...filterednotifications.map((notification) {
-                  return _buildNotificationItem(notification['message']);
-                }),
+                ...filterednotifications
+                    .where(
+                      (notification) =>
+                          (notification['message'] ?? '').isNotEmpty,
+                    )
+                    .map(
+                      (notification) =>
+                          _buildNotificationItem(notification['message']),
+                    ),
             ],
           ),
         ),
