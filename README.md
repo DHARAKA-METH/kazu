@@ -15,6 +15,16 @@ Using a GPS-enabled device connected to the app, Kazu provides **live location u
 
 ---
 
+
+## 🛠️ Tech Stack
+
+### **📱 Mobile App (Flutter)**
+- **Flutter** (Dart)
+- **Google Maps SDK**
+- **HTTP / MQTT client packages**
+- **Firebase Auth**
+- **Firebase Database (Realtime and Firestore)**
+
 ## 🏗 Architecture
 
 
@@ -49,7 +59,7 @@ Using a GPS-enabled device connected to the app, Kazu provides **live location u
 
 ---
 
-## 🖼 Screenshots
+##  Screenshots
 
 
 ---
