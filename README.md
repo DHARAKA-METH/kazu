@@ -66,6 +66,8 @@ Using a GPS-enabled device connected to the app, Kazu provides **live location u
 ![3 2](https://github.com/user-attachments/assets/60b453ad-41e8-4a68-bce6-06db76a76044)
 ![1](https://github.com/user-attachments/assets/fbac07c9-14a5-44f2-961c-21b74b62a09e)
 <img width="423" height="868" alt="Screenshot 2025-12-08 103958" src="https://github.com/user-attachments/assets/dc717dc1-65fe-4ae1-b6e3-9a9fdfa5eb63" />
+<img width="432" height="904" alt="image" src="https://github.com/user-attachments/assets/b4098e23-da98-4e2a-95de-5c3b6806a08f" />
+
 
 
 ---
